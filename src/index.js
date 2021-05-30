@@ -8,6 +8,8 @@ const compression = require('compression')
 const bodyParser = require('body-parser')
 const routerNavigation = require('./routes')
 
+const socket = require('socket.io')
+
 const app = express()
 const port = process.env.DB_PORT
 
@@ -24,6 +26,54 @@ app.use(bodyParser.json())
 app.use('/backend3/api/v1', routerNavigation)
 app.use('/backend3/api', express.static('src/uploads'))
 
-app.listen(port, () => {
+const server = require('http').createServer(app)
+const io = socket(server, {
+  cors: {
+    origin: '*'
+  },
+  path: '/backend3/socket.io'
+})
+
+io.on('connection', (socket) => {
+  console.log('Socket.io Connect !')
+  // global Message = pesan yang dikirm ke semua user
+  socket.on('globalMessage', (data) => {
+    console.log(data)
+    io.emit('chatMessage', data)
+  })
+
+  // private Message = pesan yang dikirm ke client saja
+  socket.on('privateMessage', (data) => {
+    console.log(data)
+    socket.emit('chatMessage', data)
+  })
+
+  // broadcast Message = pesan yang dikirm semua client kecuali pengirim
+  socket.on('broadcastMessage', (data) => {
+    console.log(data)
+    socket.broadcast.emit('chatMessage', data)
+  })
+
+  // masuk room
+  socket.on('joinRoom', (data) => {
+    // console.log('JOIN ROOM', data)
+    console.log('ADA ROOM ?', socket.rooms)
+    if (data.oldRoom) {
+      socket.leave(data.oldRoom)
+    }
+    socket.join(data.room)
+    // socket.broadcast.to(data.room).emit('chatMessage', {
+    //   username: 'BOT',
+    //   alert: `${data.username} Joined Chat !`
+    // })
+  })
+
+  socket.on('roomMessage', (data) => {
+    console.log(data)
+    io.to(data.room).emit('chatMessage', data)
+  })
+})
+
+server.listen(port, () => {
   console.log(`Express app is listen on port ${port} !`)
 })
