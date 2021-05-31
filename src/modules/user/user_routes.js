@@ -16,5 +16,10 @@ Route.patch(
   uploadFile,
   userController.userUpdate
 )
+Route.patch(
+  '/change/password',
+  authMiddleware.authentication,
+  userController.userChangePassword
+)
 
 module.exports = Route

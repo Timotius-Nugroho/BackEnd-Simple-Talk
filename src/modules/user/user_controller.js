@@ -1,5 +1,6 @@
 const helper = require('../../helpers')
 const userModel = require('./user_model')
+const bcrypt = require('bcrypt')
 
 module.exports = {
   getAllUser: async (req, res) => {
@@ -7,10 +8,12 @@ module.exports = {
       // console.log(req.query)
       let { keywords } = req.query
       keywords = '%' + keywords + '%' || '%%'
-      console.log('KEY INI', keywords)
       const result = await userModel.getAllData(keywords)
       if (!result[0].user_id) {
         return helper.response(res, 200, 'No data found !', [])
+      }
+      for (const user of result) {
+        delete user.user_password
       }
       return helper.response(res, 200, 'Succes get all user !', result)
     } catch (error) {
@@ -70,6 +73,24 @@ module.exports = {
       return helper.response(res, 200, 'Succes update data !', result)
     } catch (error) {
       // console.log('dari error', error)
+      return helper.response(res, 400, 'Bad Request', error)
+    }
+  },
+
+  userChangePassword: async (req, res) => {
+    try {
+      // console.log('DECODE TOKEN', req.decodeToken)
+      const id = req.decodeToken.user_id
+      const { userPassword } = req.body
+
+      const salt = bcrypt.genSaltSync(10)
+      const encryptPassword = bcrypt.hashSync(userPassword, salt)
+
+      await userModel.updateData(id, {
+        user_password: encryptPassword
+      })
+      return helper.response(res, 200, 'Succes change password !', null)
+    } catch (error) {
       return helper.response(res, 400, 'Bad Request', error)
     }
   }

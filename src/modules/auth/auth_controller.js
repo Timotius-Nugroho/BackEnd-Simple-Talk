@@ -2,6 +2,7 @@ const helper = require('../../helpers')
 const bcrypt = require('bcrypt')
 const authModel = require('./auth_model')
 const jwt = require('jsonwebtoken')
+require('dotenv').config()
 
 module.exports = {
   login: async (req, res) => {
@@ -24,7 +25,7 @@ module.exports = {
             user_id: checkEmailUser[0].user_id,
             user_name: checkEmailUser[0].user_name
           }
-          const token = jwt.sign({ ...payload }, 'RAHASIA', {
+          const token = jwt.sign({ ...payload }, process.env.PRIVATE_KEY, {
             expiresIn: '24h'
           })
           const result = { ...payload, token }
@@ -101,12 +102,12 @@ module.exports = {
       let token = req.params.token
       let userId = ''
       let setData = {}
-      console.log(token)
+      // console.log(token)
       if (/^\d+$/.test(token)) {
         userId = token
         setData = { user_verification: '1' }
       } else {
-        jwt.verify(token, 'RAHASIA', (error, result) => {
+        jwt.verify(token, process.env.PRIVATE_KEY, (error, result) => {
           if (
             (error && error.name === 'JsonWebTokenError') ||
             (error && error.name === 'TokenExpiredError')
@@ -122,7 +123,7 @@ module.exports = {
       }
 
       if (userId && setData) {
-        console.log('Update', setData)
+        // console.log('Update', setData)
         const result = await authModel.updateData(setData, userId)
         return helper.response(
           res,
@@ -132,6 +133,53 @@ module.exports = {
         )
       } else {
         return helper.response(res, 400, 'Bad Request', null)
+      }
+    } catch (error) {
+      return helper.response(res, 400, 'Bad Request', error)
+    }
+  },
+
+  requestChangePassword: async (req, res) => {
+    try {
+      if (req.body.userPassword) {
+        const salt = bcrypt.genSaltSync(10)
+        const encryptPassword = bcrypt.hashSync(req.body.userPassword, salt)
+        req.body.userPassword = encryptPassword
+
+        const user = await authModel.getDataCondition({
+          user_email: req.body.userEmail
+        })
+
+        const payload = {
+          userId: user[0].user_id,
+          setData: { user_password: encryptPassword }
+        }
+
+        // console.log(payload)
+        const token = jwt.sign({ ...payload }, process.env.PRIVATE_KEY, {
+          expiresIn: '1h'
+        })
+
+        const url = `http://localhost:3003/backend3/api/v1/auth/change-data/${token}`
+
+        // send email for verificatioan here
+        helper.sendMail('Confirm your change password', url, req.body.userEmail)
+
+        return helper.response(
+          res,
+          200,
+          'Email verification has been sent, please check your email !',
+          null
+        )
+      } else {
+        const checkEmailUser = await authModel.getDataCondition({
+          user_email: req.body.userEmail
+        })
+        if (checkEmailUser.length > 0) {
+          return helper.response(res, 200, 'Email found !', null)
+        } else {
+          return helper.response(res, 404, 'Email not found !', null)
+        }
       }
     } catch (error) {
       return helper.response(res, 400, 'Bad Request', error)

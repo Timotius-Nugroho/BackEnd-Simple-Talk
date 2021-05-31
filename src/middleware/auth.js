@@ -7,7 +7,7 @@ module.exports = {
 
     if (token) {
       token = token.split(' ')[1]
-      jwt.verify(token, 'RAHASIA', (error, result) => {
+      jwt.verify(token, process.env.PRIVATE_KEY, (error, result) => {
         if (
           (error && error.name === 'JsonWebTokenError') ||
           (error && error.name === 'TokenExpiredError')
