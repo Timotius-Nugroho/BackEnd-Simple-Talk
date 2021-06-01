@@ -37,6 +37,7 @@ DB_PASS=
 DB_NAME=[your database_name]
 SMTP_EMAIL= [your email (Gmail)]
 SMTP_PASSWORD= [your email password]
+PRIVATE_KEY= [your private key to verify JWT]
 ```
 
 ## License
