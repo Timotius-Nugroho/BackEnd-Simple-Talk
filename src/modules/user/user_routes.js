@@ -11,6 +11,11 @@ Route.get(
   userController.getUserById
 )
 Route.patch(
+  '/delete-photo/:id',
+  authMiddleware.authentication,
+  userController.userDeleteProfile
+)
+Route.patch(
   '/:id',
   authMiddleware.authentication,
   uploadFile,
