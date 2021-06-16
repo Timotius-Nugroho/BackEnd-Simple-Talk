@@ -11,7 +11,7 @@ const routerNavigation = require('./routes')
 const socket = require('socket.io')
 
 const app = express()
-const port = process.env.DB_PORT || 3003
+const port = process.env.PORT || 3003
 
 app.use(morgan('dev'))
 app.use(cors())
