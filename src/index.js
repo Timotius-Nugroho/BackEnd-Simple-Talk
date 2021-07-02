@@ -34,6 +34,8 @@ const io = socket(server, {
   path: '/backend3/socket.io'
 })
 
+let listUserOnline = [] // id ["123", "456"]
+
 io.on('connection', (socket) => {
   console.log('Socket.io Connect !')
   // global Message = pesan yang dikirm ke semua user
@@ -54,23 +56,52 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('chatMessage', data)
   })
 
-  // masuk room
+  socket.on('connectServer', (userId) => {
+    if (!listUserOnline.includes(userId)) {
+      listUserOnline.push(userId)
+    }
+    io.emit('login', userId)
+    console.log('list user online', listUserOnline)
+  })
+
+  socket.on('disconnectServer', ({ userId, room }) => {
+    listUserOnline = listUserOnline.filter((element) => element !== userId)
+    io.emit('logout', userId)
+    // LEAVE ROOM FOR NOTIF
+    // socket.leave(userId)
+    // LEAVE ROOM
+    // if (room) {
+    //   socket.leave(room)
+    // }
+    console.log('list user online', listUserOnline)
+  })
+
+  socket.on('checkUserOnline', ({ userId, room }) => {
+    if (listUserOnline.includes(userId)) {
+      io.to(room).emit('isOnline', true)
+    } else {
+      io.to(room).emit('isOnline', false)
+    }
+  })
+
   socket.on('joinRoom', (data) => {
-    // console.log('JOIN ROOM', data)
-    console.log('ADA ROOM ?', socket.rooms)
     if (data.oldRoom) {
       socket.leave(data.oldRoom)
     }
-    socket.join(data.room)
-    // socket.broadcast.to(data.room).emit('chatMessage', {
-    //   username: 'BOT',
-    //   alert: `${data.username} Joined Chat !`
-    // })
+    if (data.room) {
+      socket.join(data.room)
+    }
+    console.log('ADA ROOM ?', socket.rooms)
   })
 
   socket.on('roomMessage', (data) => {
-    console.log(data)
+    // console.log(data)
     io.to(data.room).emit('chatMessage', data)
+  })
+
+  socket.on('notifMessage', (data) => {
+    socket.broadcast.to(`${data.receiverId}`).emit('notifMessage', data)
+    console.log('ADA ROOM ?', socket.rooms)
   })
 })
 
