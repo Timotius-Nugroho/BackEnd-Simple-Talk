@@ -68,11 +68,11 @@ io.on('connection', (socket) => {
     listUserOnline = listUserOnline.filter((element) => element !== userId)
     io.emit('logout', userId)
     // LEAVE ROOM FOR NOTIF
-    // socket.leave(userId)
+    socket.leave(userId)
     // LEAVE ROOM
-    // if (room) {
-    //   socket.leave(room)
-    // }
+    if (room) {
+      socket.leave(room)
+    }
     console.log('list user online', listUserOnline)
   })
 
@@ -102,6 +102,10 @@ io.on('connection', (socket) => {
   socket.on('notifMessage', (data) => {
     socket.broadcast.to(`${data.receiverId}`).emit('notifMessage', data)
     console.log('ADA ROOM ?', socket.rooms)
+  })
+
+  socket.on('typingMessage', (data) => {
+    socket.broadcast.to(data.room).emit('typingMessage', data)
   })
 })
 
