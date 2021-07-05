@@ -79,7 +79,7 @@ module.exports = {
         const result = await authModel.addData(setData)
         delete result.user_password
 
-        const url = `https://pacific-bastion-76713.herokuapp.com/backend3/api/v1/auth/change-data/${result.id}`
+        const url = `https://simple-talk-api.herokuapp.com/backend3/api/v1/auth/change-data/${result.id}`
         helper.sendMail('Please activate your account', url, userEmail)
 
         return helper.response(
