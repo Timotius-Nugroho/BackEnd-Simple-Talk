@@ -11,11 +11,14 @@ module.exports = {
         contact.detail = await contactModel.getFriendDataById(
           contact.contact_friend_id
         )
-        delete contact.detail.user_id
-        delete contact.detail.user_password
+        if (contact.detail) {
+          delete contact.detail.user_id
+          delete contact.detail.user_password
+        }
       }
       return helper.response(res, 200, 'Succes get all user !', result)
     } catch (error) {
+      console.log(error)
       return helper.response(res, 400, 'Bad Request', error)
     }
   },
