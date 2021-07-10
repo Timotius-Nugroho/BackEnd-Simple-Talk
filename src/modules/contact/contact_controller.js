@@ -14,6 +14,8 @@ module.exports = {
         if (contact.detail) {
           delete contact.detail.user_id
           delete contact.detail.user_password
+        } else {
+          result.splice(result.indexOf(contact), 1)
         }
       }
       return helper.response(res, 200, 'Succes get all user !', result)
