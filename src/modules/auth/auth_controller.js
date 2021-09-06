@@ -160,7 +160,7 @@ module.exports = {
           expiresIn: '1h'
         })
 
-        const url = `http://localhost:3003/backend3/api/v1/auth/change-data/${token}`
+        const url = `https://simple-talk-api.herokuapp.com/backend3/api/v1/auth/change-data/${token}`
 
         // send email for verificatioan here
         helper.sendMail('Confirm your change password', url, req.body.userEmail)
